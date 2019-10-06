@@ -21,7 +21,9 @@ class Conv2d:
 
         assert in_channels is not None and out_channels is not None
 
-        self.weights = [] 
+        self.weights = np.random.rand(self.k_size, self.k_size, self.in_channels, self.out_channels)
+        self.bias = 0.0
+        self.weights = self.weights.reshape(-1, self.out_channels)
 
         self.feature = None
 
@@ -33,7 +35,7 @@ class Conv2d:
         assert len(x_shape) == 4
         if len(self.weights) == 0:
             for _ in range(self.out_channels):
-                self.w = np.random.rand(x_shape[0], self.k_size, self.k_size, self.in_channels)
+                self.w = 0.1*np.random.rand(x_shape[0], self.k_size, self.k_size, self.in_channels)
                 self.b = 0.0
                 self.weights.append((self.w, self.b))
 
@@ -50,9 +52,12 @@ class Conv2d:
         print('convolution')
         for i in range(0, x.shape[1]-self.k_size+1, self.stride):
             for j in range(0, x.shape[1]-self.k_size+1, self.stride):
-                res = np.array([np.sum(np.sum(np.sum(x[:, j:j+self.k_size, i:i+self.k_size, :]*self.weights[idx][0], axis=1), axis=1), axis=1) for idx in range(self.out_channels)])
-                res = np.reshape(res.T, (x.shape[0], 1, 1, self.out_channels))
-                out[:, j, i, :] = res
+                a = x[:, j:j+self.k_size, i:i+self.k_size, :].reshape(x_shape[0], -1)
+                # print(a.shape)
+                res = a.dot(self.weights)
+                # res = np.array([np.sum(np.sum(np.sum(x[:, j:j+self.k_size, i:i+self.k_size, :]*self.weights[idx][0], axis=1), axis=1), axis=1) for idx in range(self.out_channels)])
+                # res = np.reshape(res.T, (x.shape[0], 1, 1, self.out_channels))
+                out[:, j, i, :] = res.reshape(x_shape[0], 1, 1, self.out_channels)
 
         self.x_grad = self.weights
         self.w_grad = self.feature
@@ -63,7 +68,7 @@ class Conv2d:
 img = cv2.imread('data/02_002.png')
 img = img[490:590, 960:1060, :]
 print(img.shape)
-
+img = img / 255.0
 x = np.random.rand(32, 32, 3)
 layer = Conv2d(3, 64, k_size=3, stride=1, padding=True)
 t1 = time.time()
