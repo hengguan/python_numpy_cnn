@@ -35,7 +35,7 @@ class Conv2d:
         x_shape = x.shape
         assert len(x_shape) == 4
 
-        print('padding')
+        # print('padding')
         if self.padding:
             out = np.zeros((x_shape[0], x_shape[1], x_shape[2], self.out_channels))
             padding = (x_shape[1] - 1)*self.stride - x_shape[1] + self.k_size 
@@ -196,24 +196,25 @@ class CrossEntropyLoss:
         return out
 
         
-
-img = cv2.imread('data/cats.jpg')
-img = img[:900, 250:1150, :]
-print(img.shape)
-img = img / 255.0
-plt.imshow(img)
-plt.show()
-x = np.random.rand(32, 32, 3)
-layer = Conv2d(3, 64, k_size=3, stride=1, padding=0)
-relu = Relu()
-t1 = time.time()
-out = layer.forward(np.array([img]))
-t2 = time.time()
-print('cost time: {}'.format(t2-t1))
-out = relu.forward(out)
-print('relu cost: ', time.time()-t2)
-for i in range(64):
-    im = out[0, :, :, i].reshape(out.shape[1], out.shape[2], 1)
-    print(im.shape)
-    cv2.imshow('img', im)
-    cv2.waitKey(500)
+if __name__ == "__main__":
+    
+    img = cv2.imread('data/cats.jpg')
+    img = img[:900, 250:1150, :]
+    print(img.shape)
+    img = img / 255.0
+    plt.imshow(img)
+    plt.show()
+    x = np.random.rand(32, 32, 3)
+    layer = Conv2d(3, 64, k_size=3, stride=1, padding=0)
+    relu = Relu()
+    t1 = time.time()
+    out = layer.forward(np.array([img]))
+    t2 = time.time()
+    print('cost time: {}'.format(t2-t1))
+    out = relu.forward(out)
+    print('relu cost: ', time.time()-t2)
+    for i in range(64):
+        im = out[0, :, :, i].reshape(out.shape[1], out.shape[2], 1)
+        print(im.shape)
+        cv2.imshow('img', im)
+        cv2.waitKey(500)
