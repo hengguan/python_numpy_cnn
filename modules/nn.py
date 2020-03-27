@@ -197,7 +197,7 @@ class CrossEntropyLoss:
 
         
 if __name__ == "__main__":
-    
+    print('shit change')
     img = cv2.imread('data/cats.jpg')
     img = img[:900, 250:1150, :]
     print(img.shape)
