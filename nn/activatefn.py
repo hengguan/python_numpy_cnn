@@ -1,4 +1,5 @@
 import numpy as np
+import copy
 
 class Relu:
     
@@ -8,13 +9,13 @@ class Relu:
         self.x_grad = None
 
     def __call__(self, x):
-        self.feature = x.copy()
+        self.feature = copy.deepcopy(x)
         x[x<0] = 0
-        out = x.copy()
+        out = copy.deepcopy(x)
         x[x>0] = 1
         self.x_grad = x
         return out 
-        
+
 class Softmax:
 
     def __init__(self):
