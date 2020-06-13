@@ -8,13 +8,15 @@ class Relu:
         self.feature = None
         self.x_grad = None
 
+    def backword(self, dy):
+        self.feature[self.feature>0] = 1
+        out = self.feature*dy
+        return out
+
     def __call__(self, x):
-        self.feature = copy.deepcopy(x)
+        self.feature = x
         x[x<0] = 0
-        out = copy.deepcopy(x)
-        x[x>0] = 1
-        self.x_grad = x
-        return out 
+        return x.copy() 
 
 class Softmax:
 
@@ -29,3 +31,16 @@ class Softmax:
         sum_exp = np.sum(exp_x, axis=1, keepdims=True)
         softmax_x = exp_x/sum_exp
         return softmax_x
+
+if __name__ == "__main__":
+    data = 0.1*np.random.standard_normal(
+            (3, 3, 2))
+
+    dy = 0.1*np.random.standard_normal(
+            (3, 3, 2))
+    relu = Relu()
+    print(dy)
+    data = relu(data)
+    print("----------")
+    dout = relu.backword(dy)
+    print(dout)
