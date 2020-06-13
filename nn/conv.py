@@ -43,7 +43,7 @@ class Conv2d:
             padding = (int(padding//2), int(padding//2)) if padding % 2 ==0 \
                 else (int(padding/2+0.5), int(padding/2-0.5))
             x = np.pad(x, ((0, 0), padding, padding, (0, 0)), mode='constant', constant_values=0)
-            print(x.shape)
+            # print(x.shape)
         else:
             out_h = int((h-self.k_size)/self.stride + 1)
             out_w = int((h-self.k_size)/self.stride + 1)
@@ -52,7 +52,7 @@ class Conv2d:
             #     int((h-self.k_size)/self.stride + 1), self.out_channels))
 
         # new_h = x.shape[1]
-        print('convolution')
+        # print('convolution')
         out = np.zeros((n, out_h, out_w, self.out_channels))
         # blocks = []# x[:, :self.k_size, :self.k_size, :].reshape(n, 1, -1)
         for i in range(out_h):
