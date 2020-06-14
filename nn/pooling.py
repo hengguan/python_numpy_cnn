@@ -15,7 +15,7 @@ class MaxPooling:
             for j in range(w):
                 ws = i*self.stride
                 we = ws+self.k_size
-                self.x_grad[n, hs:he, ws:we, c] *= dy[:, i, j, :].reshape(n, 1, 1, c)
+                self.x_grad[:, hs:he, ws:we, :] *= dy[:, i, j, :].reshape(n, 1, 1, c)
         return self.x_grad[:, :self.height, :self.width, :]
 
 
@@ -47,14 +47,18 @@ class MaxPooling:
                 ws = j*self.stride
                 we = ws+self.k_size
                 kernel_x = x[:, hs:he, ws:we, :].reshape(n, -1, c)
-                kernel_dx = self.x_grad[:, hs:he, ws:we, :].reshape(n, -1, c)
-                print(kernel_x.shape)
-                max_idx = np.argmax(kernel_x, axis=1).reshape(n, 1, c)
-                print(max_idx.shape)
-                out[:, i, j, :] = kernel_x[max_idx].reshape(n, 1, 1, c)
-                kernel_dx[max_idx] = 1.0
-                self.x_grad[:, hs:he, ws:we, :] = kernel_dx.reshape(
-                    n, self.k_size, self.k_size, c)
+                # kernel_dx = self.x_grad[:, hs:he, ws:we, :].reshape(n, -1, c)
+                max_val = np.max(kernel_x, axis=1)
+                out[:, i, j, :] = max_val
+
+                # res = np.argwhere(kernel_x==max_val.reshape(n, 1, c))
+                # idx_sort = np.array(sorted(
+                #     sorted(res, key=lambda i: i[-1]), 
+                #     key=lambda j: j[0]))
+                # # print(idx_sort)
+                # kernel_dx[idx_sort[:, 0], idx_sort[:, 1], idx_sort[:,2]] = 1.0
+                # self.x_grad[:, hs:he, ws:we, :] = kernel_dx.reshape(
+                #     n, self.k_size, self.k_size, c)
         return out
 
 

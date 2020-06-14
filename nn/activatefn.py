@@ -14,9 +14,9 @@ class Relu:
         return out
 
     def __call__(self, x):
-        self.feature = x
-        x[x<0] = 0
-        return x.copy() 
+        out = np.maximum(x, 0)
+        self.feature = out
+        return out
 
 class Softmax:
 
