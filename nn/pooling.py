@@ -2,9 +2,22 @@ import numpy as np
 
 class MaxPooling:
 
-    def __init__(self, k_size=2, stride=2):
+    def __init__(self, k_size=2, stride=2, padding=0):
         self.k_size = k_size
         self.stride = stride 
+        self.padding = padding
+
+    def backword(self, dy):
+        n, h, w, c = dy.shape
+        for i in range(h):
+            hs = i*self.stride
+            he = hs+self.k_size
+            for j in range(w):
+                ws = i*self.stride
+                we = ws+self.k_size
+                self.x_grad[n, hs:he, ws:we, c] *= dy[:, i, j, :].reshape(n, 1, 1, c)
+        return self.x_grad[:, :self.height, :self.width, :]
+
 
     def __call__(self, x):
         '''
@@ -13,25 +26,35 @@ class MaxPooling:
         '''
         assert len(x.shape)==4, "shape format of input is not [n, h, w, c]"
         n, h, w, c = x.shape
+        self.height, self.width = h, w
         out_h = (h-self.k_size)/self.stride+1
         out_w = (w-self.k_size)/self.stride+1
-
-        if int(out_h)!=out_h or int(out_w)!=out_w:
-            out_h = np.floor(out_h)
-            out_w = np.floor(out_w)
-            new_h = (out_h-1)*self.stride+self.k_size
-            new_w = (out_w-1)*self.stride+self.k_size
-            x = np.pad(x, ((), (new_h-h,), (new_w-w,), ()), 'edge')
+        int_out_h, int_out_w = int(out_h), int(out_w)
+        if self.padding and (int_out_h!=out_h or int_out_w!=out_w):
+            int_out_h = int_out_h+1 if int_out_h!=out_h else int_out_h
+            int_out_w = int_out_w+1 if int_out_w!=out_w else int_out_w
+            pad_h = (int_out_h - 1)*self.stride - h + self.k_size 
+            pad_w = (int_out_w - 1)*self.stride - w + self.k_size
+            
+            x = np.pad(x, ((), (0,pad_h), (0,pad_w), ()), 'edge')
      
-        out = np.zeros((n, int(out_h), int(out_w), c))
-        for i in range(0, int(out_h)):
-            for j in range(0, int(out_w)):
-                hs, ws = i*self.stride, j*self.stride
-                max_x = np.max(
-                    x[:, hs:hs+self.k_size, ws:ws+self.k_size, :].reshape(n, -1, c), 
-                    axis=1)
-                out[:, i, j, :] = max_x.reshape(n, 1, 1, c)
-        
+        out = np.zeros((n, int_out_h, int_out_w, c))
+        self.x_grad = np.zeros_like(x)
+        for i in range(int_out_h):
+            hs = i*self.stride
+            he = hs+self.k_size
+            for j in range(int_out_w):
+                ws = j*self.stride
+                we = ws+self.k_size
+                kernel_x = x[:, hs:he, ws:we, :].reshape(n, -1, c)
+                kernel_dx = self.x_grad[:, hs:he, ws:we, :].reshape(n, -1, c)
+                print(kernel_x.shape)
+                max_idx = np.argmax(kernel_x, axis=1).reshape(n, 1, c)
+                print(max_idx.shape)
+                out[:, i, j, :] = kernel_x[max_idx].reshape(n, 1, 1, c)
+                kernel_dx[max_idx] = 1.0
+                self.x_grad[:, hs:he, ws:we, :] = kernel_dx.reshape(
+                    n, self.k_size, self.k_size, c)
         return out
 
 

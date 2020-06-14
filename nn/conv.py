@@ -19,9 +19,9 @@ class Conv2d:
         assert in_channels is not None and out_channels is not None
 
         self.weights = 0.1*np.random.standard_normal(
-            (self.k_size, self.k_size, self.in_channels, self.out_channels))
+            (self.k_size*self.k_size*self.in_channels, self.out_channels))
         self.bias = 0.1 * np.random.standard_normal(self.out_channels)
-        self.weights = self.weights.reshape(-1, self.out_channels)
+        # self.weights = self.weights.reshape(-1, self.out_channels)
         
         self.feature = None
         self.x_grad = self.weights.T
@@ -56,11 +56,13 @@ class Conv2d:
         assert c==self.in_channels, \
             "the channel({}) of input feature is equal to the channel({}) of weights." \
                 .format(c, self.in_channels)
-        # print('padding')
+        # padding
+        out_h = (h-self.k_size)/self.stride + 1
+        out_w = (w-self.k_size)/self.stride + 1
+        int_out_h, int_out_w = int(out_h), int(out_w)
         if self.padding:
-            temp_h, temp_w = h/self.stride, w/self.stride
-            out_h = int(temp_h)+1 if (temp_h)%1!=0 else int(temp_h)
-            out_w = int(temp_w)+1 if (temp_w)%1!=0 else int(temp_w)
+            out_h = int_out_h+1 if int_out_h!=out_h else int_out_h
+            out_w = int_out_w+1 if int_out_w!=out_w else int_out_w
             # out = np.zeros((n, h, w, self.out_channels))
             pad_h = (out_h - 1)*self.stride - h + self.k_size 
             pad_w = (out_w - 1)*self.stride - w + self.k_size
@@ -71,8 +73,7 @@ class Conv2d:
             x = np.pad(x, ((0, 0), pad_h, pad_w, (0, 0)), mode='constant', constant_values=0)
             # print(x.shape)
         else:
-            out_h = int((h-self.k_size)/self.stride + 1)
-            out_w = int((w-self.k_size)/self.stride + 1)
+            out_h, out_w = int_out_h, int_out_w
             self.padding_h, self.padding_w = 0, 0
             # out_size = (x_shape[1]-self.k_size)/self.stride + 1
             # out = np.zeros((n, int((h-self.k_size)/self.stride + 1), \
